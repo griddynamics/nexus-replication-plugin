@@ -8,6 +8,9 @@ import org.sonatype.nexus.configuration.application.NexusConfiguration;
 import org.sonatype.sisu.goodies.common.ComponentSupport;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -17,8 +20,11 @@ import java.io.File;
  * Class provides access to replication plugin configurations
  * parsed from {@link com.griddynamics.cd.internal.uploading.impl.ConfigurationsManagerImpl#CONFIG_FILENAME} file
  */
-@Component(role = ConfigurationsManager.class, hint = "configurationsManager")
+@Singleton
+@Named(value = ConfigurationsManagerImpl.ID)
 public class ConfigurationsManagerImpl extends ComponentSupport implements ConfigurationsManager {
+
+    public static final String ID = "configurationsManager";
 
     /**
      * Filename of the XML configuration file
@@ -28,13 +34,17 @@ public class ConfigurationsManagerImpl extends ComponentSupport implements Confi
     /**
      * Bean provides nexus server configurations
      */
-    @Requirement
     private NexusConfiguration nexusConfiguration;
 
     /**
      * DTO contains plugin configurations
      */
     private ReplicationPluginConfiguration config;
+
+    @Inject
+    public ConfigurationsManagerImpl(NexusConfiguration nexusConfiguration) {
+        this.nexusConfiguration = nexusConfiguration;
+    }
 
     /**
      * Loads configurations
@@ -53,7 +63,11 @@ public class ConfigurationsManagerImpl extends ComponentSupport implements Confi
     @Override
     public ReplicationPluginConfiguration getConfiguration() {
         if (config == null) {
-            reloadConfigurations();
+            synchronized (this) {
+                if (config == null) {
+                    reloadConfigurations();
+                }
+            }
         }
         return config;
     }
