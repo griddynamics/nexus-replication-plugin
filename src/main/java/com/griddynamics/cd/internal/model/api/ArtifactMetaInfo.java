@@ -1,9 +1,7 @@
 package com.griddynamics.cd.internal.model.api;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
+import lombok.*;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -13,6 +11,8 @@ import java.io.Serializable;
 /**
  * DTO Class encapsulates data sent to replication nexus servers
  */
+@ToString
+@EqualsAndHashCode
 @SuppressWarnings( "all" )
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = ArtifactMetaInfo.NAME)
