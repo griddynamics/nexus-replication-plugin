@@ -1,7 +1,7 @@
-package com.griddynamics.cd.internal.rest;
+package com.griddynamics.cd.nrp.internal.rest;
 
-import com.griddynamics.cd.internal.model.api.ArtifactMetaInfo;
-import com.griddynamics.cd.internal.model.api.RestResponse;
+import com.griddynamics.cd.nrp.internal.model.api.ArtifactMetaInfo;
+import com.griddynamics.cd.nrp.internal.model.api.RestResponse;
 import com.thoughtworks.xstream.XStream;
 import org.codehaus.enunciate.contract.jaxrs.ResourceMethodSignature;
 import org.codehaus.plexus.component.annotations.Component;
@@ -97,9 +97,7 @@ public class ArtifactUpdatePlexusResource extends AbstractArtifactPlexusResource
             if (repository instanceof MavenProxyRepository) {
                 MavenProxyRepository mavenProxyRepository = (MavenProxyRepository) repository;
                 log.trace(String.format("Processing repository: %s. Remote url: %s", mavenProxyRepository.getId(), mavenProxyRepository.getRemoteUrl()));
-                if (mavenProxyRepository.getRemoteUrl() != null
-                        && mavenProxyRepository.getRemoteUrl().endsWith("/" + metaInfo.getRepositoryId() + "/")
-                        && mavenProxyRepository.getRemoteUrl().startsWith(metaInfo.getNexusUrl())) {
+                if (matchRepository(mavenProxyRepository, metaInfo)) {
                     ArtifactStoreRequest gavRequest = getResourceStoreRequest(request, false, false,
                             mavenProxyRepository.getId(), metaInfo.getGroupId(), metaInfo.getArtifactId(),
                             metaInfo.getVersion(), metaInfo.getPackaging(), metaInfo.getClassifier(), metaInfo.getExtension());
@@ -115,9 +113,19 @@ public class ArtifactUpdatePlexusResource extends AbstractArtifactPlexusResource
             }
         }
         if (artifactResolved) {
-            return new RestResponse(true, "Artifact is resolved");
+            return new RestResponse(true, "Artifact is resolved.");
         } else {
-            return new RestResponse(false, "Artifact has not resolved. Replication nexus server should proxy master repository");
+            return new RestResponse(false, "No proxies for this artifact.");
         }
+    }
+
+    private boolean matchRepository(MavenProxyRepository mavenProxyRepository, ArtifactMetaInfo metaInfo) {
+        if (mavenProxyRepository.getRemoteUrl() == null) {
+            return false;
+        }
+        boolean matchRepositoryName = mavenProxyRepository.getRemoteUrl().endsWith("/" + metaInfo.getRepositoryId() + "/") ||
+                mavenProxyRepository.getRemoteUrl().endsWith("/" + metaInfo.getRepositoryId());
+        boolean matchRemoteNexusUrl = mavenProxyRepository.getRemoteUrl().startsWith(metaInfo.getNexusUrl());
+        return  matchRepositoryName && matchRemoteNexusUrl;
     }
 }

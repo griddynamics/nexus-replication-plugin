@@ -1,10 +1,10 @@
-package com.griddynamics.cd.internal.uploading.impl;
+package com.griddynamics.cd.nrp.internal.uploading.impl;
 
-import com.griddynamics.cd.internal.model.api.ArtifactMetaInfo;
-import com.griddynamics.cd.internal.model.api.RestResponse;
-import com.griddynamics.cd.internal.model.config.NexusServer;
-import com.griddynamics.cd.internal.uploading.ArtifactUpdateApiClient;
-import com.griddynamics.cd.internal.uploading.ConfigurationsManager;
+import com.griddynamics.cd.nrp.internal.model.api.ArtifactMetaInfo;
+import com.griddynamics.cd.nrp.internal.model.api.RestResponse;
+import com.griddynamics.cd.nrp.internal.model.config.NexusServer;
+import com.griddynamics.cd.nrp.internal.uploading.ArtifactUpdateApiClient;
+import com.griddynamics.cd.nrp.internal.uploading.ConfigurationsManager;
 import com.sun.jersey.api.client.AsyncWebResource;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.GenericType;

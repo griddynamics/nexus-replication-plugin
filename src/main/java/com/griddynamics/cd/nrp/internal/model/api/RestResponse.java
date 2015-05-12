@@ -1,4 +1,4 @@
-package com.griddynamics.cd.internal.model.api;
+package com.griddynamics.cd.nrp.internal.model.api;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Data;
@@ -17,7 +17,6 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor
-@SuppressWarnings( "all" )
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = RestResponse.NAME)
 @XStreamAlias(value = RestResponse.NAME)

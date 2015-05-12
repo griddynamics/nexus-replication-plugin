@@ -1,9 +1,7 @@
-package com.griddynamics.cd.internal.uploading.impl;
+package com.griddynamics.cd.nrp.internal.uploading.impl;
 
-import com.griddynamics.cd.internal.model.config.ReplicationPluginConfiguration;
-import com.griddynamics.cd.internal.uploading.ConfigurationsManager;
-import org.codehaus.plexus.component.annotations.Component;
-import org.codehaus.plexus.component.annotations.Requirement;
+import com.griddynamics.cd.nrp.internal.model.config.ReplicationPluginConfiguration;
+import com.griddynamics.cd.nrp.internal.uploading.ConfigurationsManager;
 import org.sonatype.nexus.configuration.application.NexusConfiguration;
 import org.sonatype.sisu.goodies.common.ComponentSupport;
 
@@ -18,7 +16,7 @@ import java.io.File;
 
 /**
  * Class provides access to replication plugin configurations
- * parsed from {@link com.griddynamics.cd.internal.uploading.impl.ConfigurationsManagerImpl#CONFIG_FILENAME} file
+ * parsed from {@link ConfigurationsManagerImpl#CONFIG_FILENAME} file
  */
 @Singleton
 @Named(value = ConfigurationsManagerImpl.ID)
@@ -48,7 +46,7 @@ public class ConfigurationsManagerImpl extends ComponentSupport implements Confi
 
     /**
      * Loads configurations
-     * from {@link com.griddynamics.cd.internal.uploading.impl.ConfigurationsManagerImpl#CONFIG_FILENAME} file
+     * from {@link ConfigurationsManagerImpl#CONFIG_FILENAME} file
      */
     @PostConstruct
     public void init() {
@@ -73,7 +71,7 @@ public class ConfigurationsManagerImpl extends ComponentSupport implements Confi
     }
 
     /**
-     * Reloads {@link com.griddynamics.cd.internal.uploading.impl.ConfigurationsManagerImpl#config}
+     * Reloads {@link ConfigurationsManagerImpl#config}
      * from XML plugin configurations file
      */
     public void reloadConfigurations() {

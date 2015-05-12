@@ -1,8 +1,8 @@
-package com.griddynamics.cd.plugin;
+package com.griddynamics.cd.nrp.plugin;
 
 import com.google.common.base.Preconditions;
-import com.griddynamics.cd.internal.uploading.UploadEventListener;
-import com.griddynamics.cd.internal.uploading.impl.UploadEventListenerImpl;
+import com.griddynamics.cd.nrp.internal.uploading.UploadEventListener;
+import com.griddynamics.cd.nrp.internal.uploading.impl.UploadEventListenerImpl;
 import org.eclipse.sisu.EagerSingleton;
 import org.jetbrains.annotations.NonNls;
 import org.sonatype.nexus.plugin.PluginIdentity;

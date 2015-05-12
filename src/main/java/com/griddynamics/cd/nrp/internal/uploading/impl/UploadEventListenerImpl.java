@@ -1,12 +1,12 @@
-package com.griddynamics.cd.internal.uploading.impl;
+package com.griddynamics.cd.nrp.internal.uploading.impl;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
-import com.griddynamics.cd.internal.model.api.ArtifactMetaInfo;
-import com.griddynamics.cd.internal.model.api.ArtifactStatus;
-import com.griddynamics.cd.internal.uploading.ArtifactUpdateApiClient;
-import com.griddynamics.cd.internal.uploading.ConfigurationsManager;
-import com.griddynamics.cd.internal.uploading.UploadEventListener;
+import com.griddynamics.cd.nrp.internal.model.api.ArtifactMetaInfo;
+import com.griddynamics.cd.nrp.internal.model.api.ArtifactStatus;
+import com.griddynamics.cd.nrp.internal.uploading.ArtifactUpdateApiClient;
+import com.griddynamics.cd.nrp.internal.uploading.ConfigurationsManager;
+import com.griddynamics.cd.nrp.internal.uploading.UploadEventListener;
 import org.sonatype.nexus.proxy.events.RepositoryItemEventStore;
 import org.sonatype.nexus.proxy.maven.MavenRepository;
 import org.sonatype.nexus.proxy.maven.gav.Gav;

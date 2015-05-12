@@ -1,4 +1,4 @@
-package com.griddynamics.cd.internal.model.api;
+package com.griddynamics.cd.nrp.internal.model.api;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.*;
@@ -13,7 +13,6 @@ import java.io.Serializable;
  */
 @ToString
 @EqualsAndHashCode
-@SuppressWarnings( "all" )
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = ArtifactMetaInfo.NAME)
 @XStreamAlias(value = ArtifactMetaInfo.NAME)
@@ -58,7 +57,6 @@ public class ArtifactMetaInfo implements Serializable {
         this.artifactId = artifactId;
         this.version = version;
         this.repositoryId = repositoryId;
-        this.packaging = "jar";
     }
 
     public boolean isValid() {

@@ -1,4 +1,4 @@
-package com.griddynamics.cd.internal.model.api;
+package com.griddynamics.cd.nrp.internal.model.api;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -30,6 +30,6 @@ public class ArtifactStatus implements Serializable {
     }
 
     public boolean isReadyForReplication() {
-        return isFileReceived && isMd5Received && isSha1Received;
+        return isFileReceived && isSha1Received;
     }
 }

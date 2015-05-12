@@ -1,4 +1,4 @@
-package com.griddynamics.cd.internal.model.config;
+package com.griddynamics.cd.nrp.internal.model.config;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
