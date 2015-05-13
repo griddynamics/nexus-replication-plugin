@@ -44,3 +44,11 @@ For this a REST service is implemented with path:
 
 - An email to send warnings can be configured. Notifications must be sent when
  artifacts queue is 100, 500, 1000, 10K, 100K long.
+ 
+### Copyright and License
+ 
+Copyright 2014, Grid Dynamics International, Inc.
+ 
+Licensed under the [Apache License, Version 2.0](LICENSE.txt).
+ 
+Classification level: Public
