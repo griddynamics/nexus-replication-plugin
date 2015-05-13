@@ -28,9 +28,6 @@ public class ArtifactMetaInfo implements Serializable {
     @Getter
     @NonNull
     private final String version;
-    /**
-     * Default value jar
-     */
     @Getter
     @Setter
     private String packaging;

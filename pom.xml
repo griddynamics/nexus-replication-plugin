@@ -21,7 +21,6 @@
         <pluginName>Nexus Replication Plugin</pluginName>
         <pluginDescription>Facilitates push-replication to remote proxy repositories.</pluginDescription>
         <nexus.version>2.11.2-06</nexus.version>
-        <jdk.version>1.7</jdk.version>
     </properties>
 
     <dependencies>
@@ -130,8 +129,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.3</version>
                 <configuration>
-                    <source>${jdk.version}</source>
-                    <target>${jdk.version}</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
             </plugin>
         </plugins>
