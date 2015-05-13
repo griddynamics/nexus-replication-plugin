@@ -22,6 +22,7 @@ import com.griddynamics.cd.nrp.internal.model.api.ArtifactStatus;
 import com.griddynamics.cd.nrp.internal.uploading.ArtifactUpdateApiClient;
 import com.griddynamics.cd.nrp.internal.uploading.ConfigurationsManager;
 import com.griddynamics.cd.nrp.internal.uploading.UploadEventListener;
+import org.sonatype.nexus.client.core.subsystem.repository.maven.MavenProxyRepository;
 import org.sonatype.nexus.proxy.events.RepositoryItemEventStore;
 import org.sonatype.nexus.proxy.maven.MavenRepository;
 import org.sonatype.nexus.proxy.maven.gav.Gav;
@@ -64,7 +65,8 @@ public class UploadEventListenerImpl extends ComponentSupport implements UploadE
     @Subscribe
     @AllowConcurrentEvents
     public void onArtifactUploading(RepositoryItemEventStore event) {
-        if (event.getRepository() instanceof MavenRepository) {
+        if (event.getRepository() instanceof MavenRepository &&
+                !(event.getRepository() instanceof MavenProxyRepository)) {
             MavenRepository repo = (MavenRepository) event.getRepository();
             Gav gav = repo.getGavCalculator().pathToGav(event.getItemUid().getPath());
             if (null != gav) {
