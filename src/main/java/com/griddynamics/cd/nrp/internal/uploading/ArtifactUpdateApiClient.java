@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2015, Grid Dynamics International, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
