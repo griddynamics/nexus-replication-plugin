@@ -30,7 +30,7 @@ import javax.xml.bind.Unmarshaller;
 import java.io.File;
 
 /**
- * Class provides access to replication plugin configurations
+ * Class provides access to plugin configurations
  * parsed from {@link ConfigurationsManagerImpl#CONFIG_FILENAME} file
  */
 @Singleton
@@ -102,7 +102,7 @@ public class ConfigurationsManagerImpl extends ComponentSupport implements Confi
     }
 
     /**
-     * Returns XML plugin configurations file
+     * Returns plugin configurations XML file
      */
     private File getConfigurationFile() {
         return new File(nexusConfiguration.getConfigurationDirectory(), CONFIG_FILENAME);

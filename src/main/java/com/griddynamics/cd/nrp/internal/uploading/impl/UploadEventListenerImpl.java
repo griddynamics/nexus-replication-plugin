@@ -60,7 +60,7 @@ public class UploadEventListenerImpl extends ComponentSupport implements UploadE
     }
 
     /**
-     * Fired when new artifact deployed to nexus
+     * Fired when new artifact deployed to nexus (proxy repositories are ignored)
      */
     @Subscribe
     @AllowConcurrentEvents
@@ -95,6 +95,10 @@ public class UploadEventListenerImpl extends ComponentSupport implements UploadE
         }
     }
 
+    /**
+     * Returns if binary / checksum files were deployed
+     * @param metaInfo Meta info of the deployed artifact
+     */
     private ArtifactStatus getArtifactStatus(ArtifactMetaInfo metaInfo) {
         if (!receivedArtifacts.containsKey(metaInfo)) {
             receivedArtifacts.put(metaInfo, new ArtifactStatus(metaInfo));
@@ -102,10 +106,19 @@ public class UploadEventListenerImpl extends ComponentSupport implements UploadE
         return receivedArtifacts.get(metaInfo);
     }
 
+    /**
+     * Executed when new file (binary or checksum) received
+     * @param artifactMetaInfo Meta info of the deployed artifact
+     * @param artifactStatus Information about received files for deployed artifact
+     */
     private void updateArtifactStatus(ArtifactMetaInfo artifactMetaInfo, ArtifactStatus artifactStatus) {
         receivedArtifacts.put(artifactMetaInfo, artifactStatus);
     }
 
+    /**
+     * Executed when bin and sha1 files received and nexus peer notifications sent
+     * @param metaInfo Meta info of the deployed artifact
+     */
     private void clearStatus(ArtifactMetaInfo metaInfo) {
         receivedArtifacts.remove(metaInfo);
     }

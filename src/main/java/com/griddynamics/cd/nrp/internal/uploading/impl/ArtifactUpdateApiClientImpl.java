@@ -46,12 +46,12 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
     public static final String ID = "artifactUpdateApiClient";
 
     /**
-     * Provides access to plugin the configurations
+     * Provides access to the plugin configurations
      */
     private ConfigurationsManager configurationsManager;
 
     /**
-     * ExecutorService shares between clients.
+     * ExecutorService shares between clients. All treads are created in the same executor
      */
     private ExecutorService asyncRequestsExecutorService = Executors.newFixedThreadPool(10);
 
@@ -95,7 +95,7 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
     }
 
     /**
-     * Returns jersey HTTP client
+     * Returns jersey HTTP resource to access to the remote replication servers
      * @param nexusUrl URL of the remote server
      * @param login Username on the remote server
      * @param password User's password
