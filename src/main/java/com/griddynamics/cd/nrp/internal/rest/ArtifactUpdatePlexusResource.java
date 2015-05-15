@@ -134,6 +134,12 @@ public class ArtifactUpdatePlexusResource extends AbstractArtifactPlexusResource
         }
     }
 
+    /**
+     * Checks if proxy repository should resolve remote artifact
+     * @param mavenProxyRepository Proxy repository
+     * @param metaInfo Information about artifact that was deployed to the master nexus
+     * @return true if repository should resolve artifact
+     */
     private boolean matchRepository(MavenProxyRepository mavenProxyRepository, ArtifactMetaInfo metaInfo) {
         if (mavenProxyRepository.getRemoteUrl() == null) {
             return false;

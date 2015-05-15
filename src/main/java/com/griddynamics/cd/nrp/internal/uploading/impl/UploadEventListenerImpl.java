@@ -22,6 +22,7 @@ import com.griddynamics.cd.nrp.internal.model.api.ArtifactStatus;
 import com.griddynamics.cd.nrp.internal.uploading.ArtifactUpdateApiClient;
 import com.griddynamics.cd.nrp.internal.uploading.ConfigurationsManager;
 import com.griddynamics.cd.nrp.internal.uploading.UploadEventListener;
+import org.sonatype.nexus.client.core.subsystem.repository.maven.MavenProxyRepository;
 import org.sonatype.nexus.proxy.events.RepositoryItemEventStore;
 import org.sonatype.nexus.proxy.maven.MavenRepository;
 import org.sonatype.nexus.proxy.maven.gav.Gav;
@@ -59,12 +60,13 @@ public class UploadEventListenerImpl extends ComponentSupport implements UploadE
     }
 
     /**
-     * Fired when new artifact deployed to nexus
+     * Fired when new artifact deployed to nexus (proxy repositories are ignored)
      */
     @Subscribe
     @AllowConcurrentEvents
     public void onArtifactUploading(RepositoryItemEventStore event) {
-        if (event.getRepository() instanceof MavenRepository) {
+        if (event.getRepository() instanceof MavenRepository &&
+                !(event.getRepository() instanceof MavenProxyRepository)) {
             MavenRepository repo = (MavenRepository) event.getRepository();
             Gav gav = repo.getGavCalculator().pathToGav(event.getItemUid().getPath());
             if (null != gav) {
@@ -93,6 +95,10 @@ public class UploadEventListenerImpl extends ComponentSupport implements UploadE
         }
     }
 
+    /**
+     * Returns if binary / checksum files were deployed
+     * @param metaInfo Meta info of the deployed artifact
+     */
     private ArtifactStatus getArtifactStatus(ArtifactMetaInfo metaInfo) {
         if (!receivedArtifacts.containsKey(metaInfo)) {
             receivedArtifacts.put(metaInfo, new ArtifactStatus(metaInfo));
@@ -100,10 +106,19 @@ public class UploadEventListenerImpl extends ComponentSupport implements UploadE
         return receivedArtifacts.get(metaInfo);
     }
 
+    /**
+     * Executed when new file (binary or checksum) received
+     * @param artifactMetaInfo Meta info of the deployed artifact
+     * @param artifactStatus Information about received files for deployed artifact
+     */
     private void updateArtifactStatus(ArtifactMetaInfo artifactMetaInfo, ArtifactStatus artifactStatus) {
         receivedArtifacts.put(artifactMetaInfo, artifactStatus);
     }
 
+    /**
+     * Executed when bin and sha1 files received and nexus peer notifications sent
+     * @param metaInfo Meta info of the deployed artifact
+     */
     private void clearStatus(ArtifactMetaInfo metaInfo) {
         receivedArtifacts.remove(metaInfo);
     }
