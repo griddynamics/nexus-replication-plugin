@@ -52,7 +52,7 @@ public class ConfigurationsManagerImpl extends ComponentSupport implements Confi
     /**
      * DTO contains plugin configurations
      */
-    private ReplicationPluginConfiguration config;
+    private volatile ReplicationPluginConfiguration config;
 
     @Inject
     public ConfigurationsManagerImpl(NexusConfiguration nexusConfiguration) {

@@ -56,6 +56,6 @@ public class ReplicationPlugin extends PluginIdentity {
     @Inject
     public ReplicationPlugin(EventBus eventBus, @Named(UploadEventListenerImpl.ID) UploadEventListener uploadEventListener) throws Exception {
         super(GROUP_ID, ARTIFACT_ID);
-        Preconditions.checkNotNull(eventBus).register(Preconditions.checkNotNull(uploadEventListener));
+        eventBus.register(Preconditions.checkNotNull(uploadEventListener));
     }
 }
