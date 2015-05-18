@@ -119,7 +119,12 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
         ClientConfig config = new DefaultClientConfig();
         Client client = Client.create(config);
         client.setExecutorService(asyncRequestsExecutorService);
-        client.addFilter(new HTTPBasicAuthFilter(login, password));
+        if (login != null && !login.isEmpty() && password != null) {
+            log.debug("Creating HTTP client with authorized HTTPBasicAuthFilter.");
+            client.addFilter(new HTTPBasicAuthFilter(login, password));
+        } else {
+            log.debug("Creating HTTP client with anonymous HTTPBasicAuthFilter.");
+        }
         return client;
     }
 }
