@@ -41,6 +41,7 @@ import org.sonatype.plexus.rest.resource.PlexusResource;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 /**
  * REST resource force repository update artifact
@@ -106,7 +107,6 @@ public class ArtifactUpdatePlexusResource extends AbstractArtifactPlexusResource
             throw new ResourceException(Status.CLIENT_ERROR_BAD_REQUEST,
                     "At least following request parameters have to be given: nexusUrl, groupId, artifactId, version, repositoryId!");
         }
-        log.trace(String.format("Remote URL: %s:%d", request.getClientInfo().getAddress(), request.getClientInfo().getPort()));
         boolean artifactResolved = false;
         for (Repository repository : getRepositoryRegistry().getRepositories()) {
             if (repository instanceof MavenProxyRepository) {

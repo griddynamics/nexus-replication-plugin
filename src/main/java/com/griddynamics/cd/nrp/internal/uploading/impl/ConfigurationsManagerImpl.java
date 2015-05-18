@@ -97,7 +97,7 @@ public class ConfigurationsManagerImpl extends ComponentSupport implements Confi
             Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
             config = (ReplicationPluginConfiguration) jaxbUnmarshaller.unmarshal(file);
         } catch (JAXBException e) {
-            log.error("Can not deserialize xml configuration file: " + file.getAbsolutePath());
+            log.error("Can not deserialize xml configuration file: " + file.getAbsolutePath(), e);
         }
     }
 
