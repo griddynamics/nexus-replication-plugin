@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+Nexus Replication Plugin - https://github.com/griddynamics/nexus-replication-plugin
+Configuration file - Should be located in $NEXUS_HOME/sonatype-work/nexus/conf/replication-plugin.xml
+Format : XML
+
+You can configure one or more peer servers here.
+Each server configuration should be places into <servers></servers> tag.
+Server configuration example:
+<server>
+    <url>http://localhost:8083/nexus</url>
+    <user>admin</user>
+    <password>admin123</password>
+</server>
+
+User and password are optional. If there is neither login nor password (or login is empty) server will use anonymous user.
+You could also define meUrl attribute for <configurations> tag tat determine URL of the Nexus instance.
+-->
+<configurations meUrl="http://localhost:8081/nexus">
+    <servers>
+        <server>
+            <url>http://localhost:8083/nexus</url>
+            <user>admin</user>
+            <password>admin123</password>
+        </server>
+    </servers>
+</configurations>

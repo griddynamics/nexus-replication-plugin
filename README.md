@@ -7,6 +7,10 @@ them when artifact is initially uploaded to one of them.
 The plugin is going to be installed on both sending side that wants to
 pass an artifact and receiving side that can accept the artifact.
 
+## Documentation
+
+[User documentation](documentation/user_doc.md)
+
 ## Mechanism
 
 Given artifact is uploaded to one of the Nexus instances:
