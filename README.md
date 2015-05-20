@@ -10,6 +10,7 @@ pass an artifact and receiving side that can accept the artifact.
 ## Documentation
 
 [User documentation](documentation/user_doc.md)
+
 [Contributor documentation](documentation/contributor_doc.md)
 
 ## Mechanism
