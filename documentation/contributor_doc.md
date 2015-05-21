@@ -1,8 +1,8 @@
-# Nexus Replication Plugin
+# Sonatype Nexus Replication Plugin
 
 [https://github.com/griddynamics/nexus-replication-plugin](https://github.com/griddynamics/nexus-replication-plugin)
 
-This is Nexus plugin that provides replication logic when new (Maven) artifacts are stored in a hosted repository. 
+This is Sonatype Nexus plugin that facilitates push-replication to remote proxy repositories when new (Maven) artifacts are stored in a hosted repository.
 Let's say you have 2 or more instances of Nexus. When artifact is uploaded to one of them, that Nexus will send notifications to its peers. Then the Receving Nexuses poll the artifact from the original instance.
 
 ## Setting up plugin
