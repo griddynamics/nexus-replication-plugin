@@ -70,7 +70,7 @@ public class UploadEventListenerImpl extends ComponentSupport implements UploadE
             MavenRepository repo = (MavenRepository) event.getRepository();
             Gav gav = repo.getGavCalculator().pathToGav(event.getItemUid().getPath());
             if (null != gav) {
-                ArtifactMetaInfo metaInfo = new ArtifactMetaInfo(configurationsManager.getConfiguration().getMeUrl(), gav.getGroupId(), gav.getArtifactId(), gav.getVersion(), repo.getId());
+                ArtifactMetaInfo metaInfo = new ArtifactMetaInfo(configurationsManager.getConfiguration().getMyUrl(), gav.getGroupId(), gav.getArtifactId(), gav.getVersion(), repo.getId());
                 metaInfo.setClassifier(gav.getClassifier());
                 metaInfo.setExtension(gav.getExtension());
                 ArtifactStatus artifactStatus = getArtifactStatus(metaInfo);

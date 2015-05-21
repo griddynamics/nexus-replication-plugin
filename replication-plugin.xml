@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+You can configure one or more peer servers here.
+Each server configuration should be placed within <servers></servers> tag.
+Server configuration example:
+<server>
+    <url>http://localhost:8083/nexus</url>
+    <user>admin</user>
+    <password>admin123</password>
+</server>
+
+User and password are optional. If there is neither login nor password (or login is empty) server will use anonymous user.
+You could also define myUrl attribute for <configurations> tag that defines URL of the Nexus instance.
+Remote URL of the proxy repository (at the peer instance) should start with myUrl (configured for master instance).
+This configuration used to match what proxy repository have to poll artifact.
+-->
+<configurations myUrl="http://localhost:8081/nexus">
+    <servers>
+        <server>
+            <url>http://localhost:8083/nexus</url>
+            <user>admin</user>
+            <password>admin123</password>
+        </server>
+    </servers>
+</configurations>
