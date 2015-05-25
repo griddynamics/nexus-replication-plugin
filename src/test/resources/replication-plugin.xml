@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<configurations myUrl="http://localhost:8081/nexus">
+    <servers>
+        <server>
+            <url>http://localhost:8083/nexus</url>
+            <user>admin</user>
+            <password>admin123</password>
+        </server>
+    </servers>
+</configurations>
