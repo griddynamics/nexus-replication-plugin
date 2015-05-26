@@ -40,8 +40,8 @@ public class ReplicationPluginConfiguration {
     private final Set<NexusServer> servers = new HashSet<>();
     @Getter
     @NonNull
-    @XmlAttribute(name = "meUrl")
-    private String meUrl;
+    @XmlAttribute(name = "myUrl")
+    private String myUrl;
 
     public void addServer(NexusServer server) {
         servers.add(server);
