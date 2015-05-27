@@ -41,8 +41,6 @@ import java.util.concurrent.*;
 public class ArtifactUpdateApiClientImpl extends ComponentSupport implements ArtifactUpdateApiClient {
 
     public static final String ID = "artifactUpdateApiClient";
-    public static final Integer REQUESTS_SENDING_THREADS_COUNT = 1;
-    public static final Integer REQUESTS_QUEUE_SIZE = 10;
 
     /**
      * Provides access to the plugin configurations
@@ -52,19 +50,21 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
     /**
      * Queue for async requests
      */
-    private BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>(REQUESTS_QUEUE_SIZE);
+    private BlockingQueue<Runnable> queue;
 
     /**
      * ExecutorService shares between clients. All treads are created in the same executor
      */
-    private ExecutorService asyncRequestsExecutorService = new ThreadPoolExecutor(
-            ArtifactUpdateApiClientImpl.REQUESTS_SENDING_THREADS_COUNT,
-            ArtifactUpdateApiClientImpl.REQUESTS_SENDING_THREADS_COUNT,
-            30, TimeUnit.SECONDS, queue);
+    private ExecutorService asyncRequestsExecutorService;
 
     @Inject
     public ArtifactUpdateApiClientImpl(ConfigurationsManager configurationsManager) {
         this.configurationsManager = configurationsManager;
+        this.queue = new LinkedBlockingQueue<>(configurationsManager.getConfiguration().getRequestsQueueSize());
+        this.asyncRequestsExecutorService = new ThreadPoolExecutor(
+                configurationsManager.getConfiguration().getRequestsSendingThreadsCount(),
+                configurationsManager.getConfiguration().getRequestsSendingThreadsCount(),
+                30, TimeUnit.SECONDS, queue);
     }
 
     /**

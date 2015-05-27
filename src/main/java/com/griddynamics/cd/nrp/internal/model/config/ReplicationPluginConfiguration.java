@@ -42,6 +42,12 @@ public class ReplicationPluginConfiguration {
     @NonNull
     @XmlAttribute(name = "myUrl")
     private String myUrl;
+    @Getter
+    @XmlAttribute(name = "requestsQueueSize")
+    private Integer requestsQueueSize = 500;
+    @Getter
+    @XmlAttribute(name = "requestsSendingThreadsCount")
+    private Integer requestsSendingThreadsCount;
 
     public void addServer(NexusServer server) {
         servers.add(server);
