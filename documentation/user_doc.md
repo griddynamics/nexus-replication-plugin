@@ -13,7 +13,7 @@ You may have multiple Nexus instances configured as Masters. They will poll arti
 ### Master instance
 
 1. Download source from [https://github.com/griddynamics/nexus-replication-plugin](https://github.com/griddynamics/nexus-replication-plugin).
-2. Run `mvn package` in root directory (project requires Apache Maven 3.0.4 -- 3.1 and JDK 1.7+).
+2. Run `mvn package` in root directory (project requires Apache Maven 3.0.4 -- 3.0.5 and JDK 1.7+).
 3. Unzip the `target/nexus-replication-plugin-bundle.zip` file into the plugin-repository directory (located in `$NEXUS_HOME/sonatype-work/nexus/plugin-repository`).
 4. Download a sample of the configuration file from [https://github.com/griddynamics/nexus-replication-plugin/blob/master/replication-plugin.xml](https://github.com/griddynamics/nexus-replication-plugin/blob/master/replication-plugin.xml).
 5. Copy the `replication-plugin.xml` file into the conf  directory (located in `$NEXUS_HOME/sonatype-work/nexus/conf`).
