@@ -24,9 +24,23 @@
     <groupId>com.griddynamics.cd</groupId>
     <artifactId>nexus-replication-plugin</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>Nexus Replication Plugin</name>
     <packaging>nexus-plugin</packaging>
+
+    <name>Nexus Replication Plugin</name>
     <description>Sonatype Nexus plugin to push updates to remote proxy repositories.</description>
+    <url>https://github.com/griddynamics/nexus-replication-plugin</url>
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git@github.com:griddynamics/nexus-replication-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:griddynamics/nexus-replication-plugin.git</developerConnection>
+        <url>git@github.com:griddynamics/nexus-replication-plugin.git</url>
+    </scm>
 
     <parent>
         <groupId>org.sonatype.nexus.plugins</groupId>
@@ -35,9 +49,9 @@
     </parent>
 
     <properties>
-        <pluginName>Nexus Replication Plugin</pluginName>
+        <pluginName>${project.name}</pluginName>
         <pluginDescription>Facilitates push-replication to remote proxy repositories.</pluginDescription>
-        <nexus.version>2.11.2-06</nexus.version>
+        <nexus.version>${project.parent.version}</nexus.version>
     </properties>
 
     <dependencies>
