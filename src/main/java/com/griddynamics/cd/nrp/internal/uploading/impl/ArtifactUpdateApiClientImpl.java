@@ -45,22 +45,17 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
     /**
      * Provides access to the plugin configurations
      */
-    private ConfigurationsManager configurationsManager;
-
-    /**
-     * Queue for async requests
-     */
-    private BlockingQueue<Runnable> queue;
+    private final ConfigurationsManager configurationsManager;
 
     /**
      * ExecutorService shares between clients. All treads are created in the same executor
      */
-    private ExecutorService asyncRequestsExecutorService;
+    private final ExecutorService asyncRequestsExecutorService;
 
     @Inject
     public ArtifactUpdateApiClientImpl(ConfigurationsManager configurationsManager) {
         this.configurationsManager = configurationsManager;
-        this.queue = new LinkedBlockingQueue<>(configurationsManager.getConfiguration().getRequestsQueueSize());
+        BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>(configurationsManager.getConfiguration().getRequestsQueueSize());
         this.asyncRequestsExecutorService = new ThreadPoolExecutor(
                 configurationsManager.getConfiguration().getRequestsSendingThreadsCount(),
                 configurationsManager.getConfiguration().getRequestsSendingThreadsCount(),
