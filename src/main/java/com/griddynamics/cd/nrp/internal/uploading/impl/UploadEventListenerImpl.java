@@ -73,23 +73,23 @@ public class UploadEventListenerImpl extends ComponentSupport implements UploadE
                 ArtifactMetaInfo metaInfo = new ArtifactMetaInfo(configurationsManager.getConfiguration().getMyUrl(), gav.getGroupId(), gav.getArtifactId(), gav.getVersion(), repo.getId());
                 metaInfo.setClassifier(gav.getClassifier());
                 metaInfo.setExtension(gav.getExtension());
-                ArtifactStatus artifactStatus = getArtifactStatus(metaInfo);
+                ArtifactStatus artifactStatus = null;
                 if (!gav.isSignature() && !gav.isHash()) {
+                    artifactStatus = getArtifactStatus(metaInfo);
                     artifactStatus.setFileReceived(true);
                     log.debug("File received: " + metaInfo.toString());
-                } else if (gav.isHash()) {
-                    if (gav.getHashType().equals(Gav.HashType.md5)) {
-                        artifactStatus.setMd5Received(true);
-                    } else if (gav.getHashType().equals(Gav.HashType.sha1)) {
-                        artifactStatus.setSha1Received(true);
-                    }
+                } else if (gav.isHash() && gav.getHashType().equals(Gav.HashType.sha1)) {
+                    artifactStatus = getArtifactStatus(metaInfo);
+                    artifactStatus.setSha1Received(true);
                     log.debug(gav.getHashType().name() + " hash file received for: " + metaInfo.toString());
                 }
-                updateArtifactStatus(metaInfo, artifactStatus);
-                if (artifactStatus.isReadyForReplication()) {
-                    log.debug("File with hashes received for: " + metaInfo.toString() + " Sending request");
-                    artifactUpdateApiClient.sendRequest(metaInfo);
-                    clearStatus(metaInfo);
+                if (null != artifactStatus) {
+                    updateArtifactStatus(metaInfo, artifactStatus);
+                    if (artifactStatus.isReadyForReplication()) {
+                        log.debug("File with hashes received for: " + metaInfo.toString() + " Sending request");
+                        artifactUpdateApiClient.sendRequest(metaInfo);
+                        clearStatus(metaInfo);
+                    }
                 }
             }
         }

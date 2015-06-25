@@ -21,7 +21,7 @@ import lombok.EqualsAndHashCode;
 import java.io.Serializable;
 
 @Data
-@EqualsAndHashCode(exclude = {"isMd5Received", "isSha1Received", "isFileReceived"})
+@EqualsAndHashCode(exclude = {"isSha1Received", "isFileReceived"})
 public class ArtifactStatus implements Serializable {
     private final String groupId;
     private final String artifactId;
@@ -30,7 +30,6 @@ public class ArtifactStatus implements Serializable {
     private final String extension;
     private final String repositoryId;
     private final String nexusUrl;
-    private boolean isMd5Received;
     private boolean isSha1Received;
     private boolean isFileReceived;
 
