@@ -34,10 +34,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 @Singleton
 @Named(ArtifactUpdateApiClientImpl.ID)
@@ -51,13 +48,23 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
     private ConfigurationsManager configurationsManager;
 
     /**
+     * Queue for async requests
+     */
+    private BlockingQueue<Runnable> queue;
+
+    /**
      * ExecutorService shares between clients. All treads are created in the same executor
      */
-    private ExecutorService asyncRequestsExecutorService = Executors.newFixedThreadPool(10);
+    private ExecutorService asyncRequestsExecutorService;
 
     @Inject
     public ArtifactUpdateApiClientImpl(ConfigurationsManager configurationsManager) {
         this.configurationsManager = configurationsManager;
+        this.queue = new LinkedBlockingQueue<>(configurationsManager.getConfiguration().getRequestsQueueSize());
+        this.asyncRequestsExecutorService = new ThreadPoolExecutor(
+                configurationsManager.getConfiguration().getRequestsSendingThreadsCount(),
+                configurationsManager.getConfiguration().getRequestsSendingThreadsCount(),
+                30, TimeUnit.SECONDS, queue);
     }
 
     /**
@@ -68,29 +75,35 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
     public void sendRequest(ArtifactMetaInfo metaInfo) {
         for (NexusServer server : configurationsManager.getConfiguration().getServers()) {
             AsyncWebResource.Builder service = getService(server.getUrl(), server.getUser(), server.getPassword());
-            service.post(new ITypeListener<RestResponse>() {
-                @Override
-                public void onComplete(Future<RestResponse> future) throws InterruptedException {
-                    RestResponse response = null;
-                    try {
-                        response = future.get();
-                    } catch (ExecutionException e) {
-                        log.error("Can not get REST response", e);
+            try {
+                service.post(new ITypeListener<RestResponse>() {
+                    @Override
+                    public void onComplete(Future<RestResponse> future) throws InterruptedException {
+                        RestResponse response = null;
+                        try {
+                            response = future.get();
+                        } catch (ExecutionException e) {
+                            log.error("Can not get REST response", e);
+                        }
+                        if (response != null && !response.isSuccess()) {
+                            log.error("Can not send replication request: " + response.getMessage());
+                        }
                     }
-                    if (response != null && !response.isSuccess()) {
-                        log.error("Can not send replication request: " + response.getMessage());
+
+                    @Override
+                    public Class<RestResponse> getType() {
+                        return RestResponse.class;
                     }
-                }
 
-                @Override
-                public Class<RestResponse> getType() {
-                    return RestResponse.class;
-                }
+                    @Override
+                    public GenericType<RestResponse> getGenericType() {
+                        return null;
+                    }
 
-                @Override
-                public GenericType<RestResponse> getGenericType() { return null; }
-
-            }, metaInfo);
+                }, metaInfo);
+            } catch (RejectedExecutionException e) {
+                log.warn("Requests queue is full. Request to " + server.getUrl() + " is rejected");
+            }
         }
     }
 
