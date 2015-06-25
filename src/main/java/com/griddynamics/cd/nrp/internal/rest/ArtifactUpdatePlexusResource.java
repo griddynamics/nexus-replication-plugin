@@ -39,9 +39,12 @@ import org.sonatype.nexus.rest.artifact.AbstractArtifactPlexusResource;
 import org.sonatype.plexus.rest.resource.PathProtectionDescriptor;
 import org.sonatype.plexus.rest.resource.PlexusResource;
 
-import javax.ws.rs.*;
+import javax.inject.Inject;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.List;
 
 /**
  * REST resource force repository update artifact
@@ -56,6 +59,7 @@ public class ArtifactUpdatePlexusResource extends AbstractArtifactPlexusResource
 
     private Logger log = LoggerFactory.getLogger(ArtifactUpdatePlexusResource.class);
 
+    @Inject
     public ArtifactUpdatePlexusResource() {
         // Allows POST requests
         setModifiable(true);
