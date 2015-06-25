@@ -149,7 +149,6 @@
     </dependencies>
 
     <build>
-        <finalName>nexus-replication-plugin</finalName>
         <plugins>
             <plugin>
                 <groupId>org.sonatype.nexus</groupId>
