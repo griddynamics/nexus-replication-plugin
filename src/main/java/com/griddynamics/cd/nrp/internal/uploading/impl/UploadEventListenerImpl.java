@@ -87,7 +87,7 @@ public class UploadEventListenerImpl extends ComponentSupport implements UploadE
                     updateArtifactStatus(metaInfo, artifactStatus);
                     if (artifactStatus.isReadyForReplication()) {
                         log.debug("File with hashes received for: " + metaInfo.toString() + " Sending request");
-                        artifactUpdateApiClient.sendRequest(metaInfo);
+                        artifactUpdateApiClient.offerRequest(metaInfo);
                         clearStatus(metaInfo);
                     }
                 }

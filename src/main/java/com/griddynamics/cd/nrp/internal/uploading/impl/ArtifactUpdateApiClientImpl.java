@@ -45,28 +45,54 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
     /**
      * Provides access to the plugin configurations
      */
-    private final ConfigurationsManager configurationsManager;
+    private ConfigurationsManager configurationsManager;
 
     /**
      * ExecutorService shares between clients. All treads are created in the same executor
      */
-    private final ExecutorService asyncRequestsExecutorService;
+    private final ExecutorService jerseyHttpClientExecutor;
+    private final BlockingQueue<ArtifactMetaInfo> artifactMetaInfoBlockingQueue;
 
     @Inject
     public ArtifactUpdateApiClientImpl(ConfigurationsManager configurationsManager) {
         this.configurationsManager = configurationsManager;
-        BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>(configurationsManager.getConfiguration().getRequestsQueueSize());
-        this.asyncRequestsExecutorService = new ThreadPoolExecutor(
+        this.artifactMetaInfoBlockingQueue = new LinkedBlockingQueue<>(configurationsManager.getConfiguration().getRequestsQueueSize());
+        this.jerseyHttpClientExecutor = new ThreadPoolExecutor(
                 configurationsManager.getConfiguration().getRequestsSendingThreadsCount(),
                 configurationsManager.getConfiguration().getRequestsSendingThreadsCount(),
-                30, TimeUnit.SECONDS, queue);
+                30,
+                TimeUnit.SECONDS,
+                new LinkedBlockingQueue<Runnable>());
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (!Thread.currentThread().isInterrupted()) {
+                    try {
+                        final ArtifactMetaInfo artifactMetaInfo = artifactMetaInfoBlockingQueue.take();
+                        sendRequest(artifactMetaInfo);
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
+                    }
+                }
+            }
+        });
+        thread.start();
+    }
+
+    @Override
+    public void offerRequest(ArtifactMetaInfo artifactMetaInfo) {
+        try {
+            artifactMetaInfoBlockingQueue.offer(artifactMetaInfo, 30, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     /**
      * Sends replication requests to all nexus servers configured in XML file
+     *
      * @param metaInfo Artifact information
      */
-    @Override
     public void sendRequest(ArtifactMetaInfo metaInfo) {
         for (NexusServer server : configurationsManager.getConfiguration().getServers()) {
             AsyncWebResource.Builder service = getService(server.getUrl(), server.getUser(), server.getPassword());
@@ -104,8 +130,9 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
 
     /**
      * Returns jersey HTTP resource to access to the remote replication servers
+     *
      * @param nexusUrl URL of the remote server
-     * @param login Username on the remote server
+     * @param login    Username on the remote server
      * @param password User's password
      * @return Jersey HTTP client
      */
@@ -119,14 +146,15 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
 
     /**
      * Creates jersey HTTP client
-     * @param login Username on the remote server
+     *
+     * @param login    Username on the remote server
      * @param password User's password
      * @return HTTP client
      */
     private Client getClient(String login, String password) {
         ClientConfig config = new DefaultClientConfig();
         Client client = Client.create(config);
-        client.setExecutorService(asyncRequestsExecutorService);
+        client.setExecutorService(jerseyHttpClientExecutor);
         if (login != null && !login.isEmpty() && password != null) {
             log.debug("Creating HTTP client with authorized HTTPBasicAuthFilter.");
             client.addFilter(new HTTPBasicAuthFilter(login, password));
