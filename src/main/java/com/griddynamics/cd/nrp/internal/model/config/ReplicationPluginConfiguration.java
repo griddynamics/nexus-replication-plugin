@@ -34,7 +34,6 @@ import java.util.Set;
 @RequiredArgsConstructor
 @XmlRootElement(name = "configurations")
 public class ReplicationPluginConfiguration {
-    @Getter
     @XmlElement(name = "server")
     @XmlElementWrapper(name = "servers")
     private final Set<NexusServer> servers = new HashSet<>();
@@ -46,6 +45,8 @@ public class ReplicationPluginConfiguration {
     private Integer requestsQueueSize = 500;
     @XmlAttribute(name = "requestsSendingThreadsCount")
     private Integer requestsSendingThreadsCount = 1;
+    @XmlAttribute(name = "queueDumpFileName")
+    private String queueDumpFileName;
 
     public void addServer(NexusServer server) {
         servers.add(server);
@@ -55,7 +56,15 @@ public class ReplicationPluginConfiguration {
         return requestsQueueSize;
     }
 
+    public String getQueueDumpFileName() {
+        return queueDumpFileName;
+    }
+
     public Integer getRequestsSendingThreadsCount() {
         return requestsSendingThreadsCount;
+    }
+
+    public Set<NexusServer> getServers() {
+        return servers;
     }
 }
