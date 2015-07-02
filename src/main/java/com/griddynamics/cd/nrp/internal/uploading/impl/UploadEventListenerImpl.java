@@ -17,10 +17,10 @@ package com.griddynamics.cd.nrp.internal.uploading.impl;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
+import com.griddynamics.cd.nrp.internal.model.config.ReplicationPluginConfigurationStorage;
 import com.griddynamics.cd.nrp.internal.model.api.ArtifactMetaInfo;
 import com.griddynamics.cd.nrp.internal.model.api.ArtifactStatus;
 import com.griddynamics.cd.nrp.internal.uploading.ArtifactUpdateApiClient;
-import com.griddynamics.cd.nrp.internal.uploading.ConfigurationsManager;
 import com.griddynamics.cd.nrp.internal.uploading.UploadEventListener;
 import org.sonatype.nexus.client.core.subsystem.repository.maven.MavenProxyRepository;
 import org.sonatype.nexus.proxy.events.RepositoryItemEventStore;
@@ -46,17 +46,16 @@ public class UploadEventListenerImpl extends ComponentSupport implements UploadE
     /**
      * Provides access to plugin the configurations
      */
-    private ConfigurationsManager configurationsManager;
-
-    private ArtifactUpdateApiClient artifactUpdateApiClient;
+    private final ArtifactUpdateApiClient artifactUpdateApiClient;
+    private final ReplicationPluginConfigurationStorage replicationPluginConfigurationStorage;
 
     private Map<ArtifactMetaInfo, ArtifactStatus> receivedArtifacts = new ConcurrentHashMap<>();
 
     @Inject
-    public UploadEventListenerImpl(@Named(value = ConfigurationsManagerImpl.ID) ConfigurationsManager configurationsManager,
-                                   @Named(value = ArtifactUpdateApiClientImpl.ID) ArtifactUpdateApiClient artifactUpdateApiClient) {
-        this.configurationsManager = configurationsManager;
+    public UploadEventListenerImpl(@Named(value = ArtifactUpdateApiClientImpl.ID) ArtifactUpdateApiClient artifactUpdateApiClient,
+                                   ReplicationPluginConfigurationStorage replicationPluginConfigurationStorage) {
         this.artifactUpdateApiClient = artifactUpdateApiClient;
+        this.replicationPluginConfigurationStorage = replicationPluginConfigurationStorage;
     }
 
     /**
@@ -70,7 +69,12 @@ public class UploadEventListenerImpl extends ComponentSupport implements UploadE
             MavenRepository repo = (MavenRepository) event.getRepository();
             Gav gav = repo.getGavCalculator().pathToGav(event.getItemUid().getPath());
             if (null != gav) {
-                ArtifactMetaInfo metaInfo = new ArtifactMetaInfo(configurationsManager.getConfiguration().getMyUrl(), gav.getGroupId(), gav.getArtifactId(), gav.getVersion(), repo.getId());
+                ArtifactMetaInfo metaInfo = new ArtifactMetaInfo(
+                        replicationPluginConfigurationStorage.getMasterServerURLPrefix(),
+                        gav.getGroupId(),
+                        gav.getArtifactId(),
+                        gav.getVersion(),
+                        repo.getId());
                 metaInfo.setClassifier(gav.getClassifier());
                 metaInfo.setExtension(gav.getExtension());
                 ArtifactStatus artifactStatus = null;
