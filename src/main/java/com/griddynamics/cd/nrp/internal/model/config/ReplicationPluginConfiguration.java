@@ -24,7 +24,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -36,24 +36,22 @@ import java.util.Set;
 public class ReplicationPluginConfiguration {
     @XmlElement(name = "server")
     @XmlElementWrapper(name = "servers")
-    private final Set<NexusServer> servers = new HashSet<>();
+    private final Set<NexusServer> servers = new LinkedHashSet<>();
     @Getter
     @NonNull
     @XmlAttribute(name = "myUrl")
     private String myUrl;
+    @Getter
     @XmlAttribute(name = "requestsQueueSize")
     private Integer requestsQueueSize = 500;
     @XmlAttribute(name = "requestsSendingThreadsCount")
     private Integer requestsSendingThreadsCount = 1;
     @XmlAttribute(name = "queueDumpFileName")
+    @NonNull
     private String queueDumpFileName;
 
     public void addServer(NexusServer server) {
         servers.add(server);
-    }
-
-    public Integer getRequestsQueueSize() {
-        return requestsQueueSize;
     }
 
     public String getQueueDumpFileName() {
