@@ -28,25 +28,16 @@ import javax.xml.bind.annotation.XmlElement;
 @RequiredArgsConstructor
 @XmlAccessorType(XmlAccessType.FIELD)
 public class NexusServer {
+    @Getter
     @NonNull
     @XmlElement(name = "url")
     private String url;
+    @Getter
     @NonNull
     @XmlElement(name = "user")
     private String user;
+    @Getter
     @NonNull
     @XmlElement(name = "password")
     private String password;
-
-    public String getUrl() {
-        return url;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public String getPassword() {
-        return password;
-    }
 }

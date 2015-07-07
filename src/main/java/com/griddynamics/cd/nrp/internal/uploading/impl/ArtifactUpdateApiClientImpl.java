@@ -16,6 +16,7 @@
 package com.griddynamics.cd.nrp.internal.uploading.impl;
 
 import com.griddynamics.cd.nrp.internal.model.api.ArtifactMetaInfo;
+import com.griddynamics.cd.nrp.internal.model.config.ReplicationPluginConfiguration;
 import com.griddynamics.cd.nrp.internal.model.internal.ArtifactMetaInfoQueueDump;
 import com.griddynamics.cd.nrp.internal.model.api.RestResponse;
 import com.griddynamics.cd.nrp.internal.model.config.NexusServer;
@@ -40,11 +41,26 @@ import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.util.concurrent.*;
 
+/**
+ * Responsible to send request to other Nexus instances to notify them about new artifacts.
+ * There are 2 separate thread pools working along:
+ * - Usual sending threads that work when new artifacts are uploaded to Nexus Sender
+ * - Threads that read queue of artifacts from file. That file is filled with new
+ * artifacts if Nexus Receiver was not available and our Nexus was
+ * shut down. It then reads artifacts from the file and tries to send them to Receiver
+ */
+
 @Singleton
 @Named(ArtifactUpdateApiClientImpl.ID)
 public class ArtifactUpdateApiClientImpl extends ComponentSupport implements ArtifactUpdateApiClient {
 
     public static final String ID = "artifactUpdateApiClient";
+
+    /**
+     * Default value for request queue timeout
+     * Timeout should be relatively low and should be lower than Jersey Client read timeout
+     */
+    public static final int QUEUE_TIMEOUT_IN_SECOND = 1;
 
     /**
      * Provides access to the plugin configurations
@@ -60,7 +76,7 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
     @Inject
     public ArtifactUpdateApiClientImpl(ConfigurationsManager configurationsManager) {
         this.configurationsManager = configurationsManager;
-        this.fileBlockingQueue = initFileBlockingQueue(configurationsManager);
+        this.fileBlockingQueue = initFileBlockingQueue(configurationsManager.getConfiguration());
         this.jerseyHttpClientExecutor = new ThreadPoolExecutor(
                 configurationsManager.getConfiguration().getRequestsSendingThreadsCount(),
                 configurationsManager.getConfiguration().getRequestsSendingThreadsCount(),
@@ -69,12 +85,11 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
                 new LinkedBlockingQueue<Runnable>(
                         configurationsManager.getConfiguration().getRequestsQueueSize())
         );
-        initBackgroundWorkers(configurationsManager);
+        initBackgroundWorkers(configurationsManager.getConfiguration());
     }
 
-    private void initBackgroundWorkers(ConfigurationsManager configurationsManager) {
-        int requestsSendingThreadsCount = configurationsManager.getConfiguration()
-                .getRequestsSendingThreadsCount();
+    private void initBackgroundWorkers(ReplicationPluginConfiguration replicationPluginConfiguration) {
+        int requestsSendingThreadsCount = replicationPluginConfiguration.getRequestsSendingThreadsCount();
         ExecutorService executorService = Executors.newFixedThreadPool(requestsSendingThreadsCount);
         for (int i = 0; i < requestsSendingThreadsCount; i++) {
             executorService.submit(new Runnable() {
@@ -82,7 +97,7 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
                 public void run() {
                     while (!Thread.currentThread().isInterrupted()) {
                         try {
-                            final ArtifactMetaInfo artifactMetaInfo = fileBlockingQueue.peek();
+                            ArtifactMetaInfo artifactMetaInfo = fileBlockingQueue.peek();
                             sendRequest(artifactMetaInfo);
                             fileBlockingQueue.take();
                         } catch (Exception e) {
@@ -94,19 +109,18 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
         }
     }
 
-    private FileBlockingQueue initFileBlockingQueue(ConfigurationsManager configurationsManager) {
+    private FileBlockingQueue initFileBlockingQueue(ReplicationPluginConfiguration replicationPluginConfiguration) {
         BlockingQueue<ArtifactMetaInfo> blockingQueue =
-                new LinkedBlockingQueue<>(configurationsManager.
-                        getConfiguration().getRequestsQueueSize());
-        String blockingQueueDumpFileName = configurationsManager.getConfiguration().getQueueDumpFileName();
+                new LinkedBlockingQueue<>(replicationPluginConfiguration.getRequestsQueueSize());
+        String queueFileName = replicationPluginConfiguration.getQueueDumpFileName();
         FileBlockingQueue retVal = new FileBlockingQueue(blockingQueue,
-                blockingQueueDumpFileName);
+                queueFileName);
         try {
-            File blockingQueueInputFile = new File(blockingQueueDumpFileName);
-            if (blockingQueueInputFile.exists()) {
+            File queueFile = new File(queueFileName);
+            if (queueFile.exists()) {
                 JAXBContext jaxbContext = JAXBContext.newInstance(ArtifactMetaInfoQueueDump.class);
                 Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-                ArtifactMetaInfoQueueDump unmarshal = (ArtifactMetaInfoQueueDump) unmarshaller.unmarshal(blockingQueueInputFile);
+                ArtifactMetaInfoQueueDump unmarshal = (ArtifactMetaInfoQueueDump) unmarshaller.unmarshal(queueFile);
                 for (ArtifactMetaInfo artifactMetaInfo : unmarshal.getArtifactMetaInfos()) {
                     offerRequest(artifactMetaInfo);
                 }
@@ -120,7 +134,7 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
     @Override
     public void offerRequest(ArtifactMetaInfo artifactMetaInfo) {
         try {
-            fileBlockingQueue.offer(artifactMetaInfo, 30, TimeUnit.SECONDS);
+            fileBlockingQueue.offer(artifactMetaInfo, QUEUE_TIMEOUT_IN_SECOND, TimeUnit.SECONDS);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -192,6 +206,8 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
      */
     private Client getClient(String login, String password) {
         ClientConfig config = new DefaultClientConfig();
+        config.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, 1000);
+        config.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, 2000);
         Client client = Client.create(config);
         client.setExecutorService(jerseyHttpClientExecutor);
         if (login != null && !login.isEmpty() && password != null) {

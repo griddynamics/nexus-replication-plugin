@@ -13,12 +13,17 @@ import java.io.File;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Stores artifacts that Plugin failed to send to another Nexus instance. If that happens, we don't want
+ * to loose the history of updates and therefore we'll retry sending the requests even if Nexus Sender
+ * was restarted.
+ */
 public class FileBlockingQueue {
 
     private final BlockingQueue<ArtifactMetaInfo> internalBlockingQueue;
     private final String blockingQueueDumpFileName;
 
-    private Logger log = LoggerFactory.getLogger(FileBlockingQueue.class);
+    private final Logger log = LoggerFactory.getLogger(FileBlockingQueue.class);
 
     public FileBlockingQueue(BlockingQueue<ArtifactMetaInfo> blockingQueue, String blockingQueueDumpFileName) {
         this.internalBlockingQueue = blockingQueue;
