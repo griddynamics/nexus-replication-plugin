@@ -72,7 +72,6 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
         this.replicationPluginConfigurationStorage = replicationPluginConfigurationStorage;
     }
 
-    @Override
     public void onActivate(){
         this.fileBlockingQueue = initFileBlockingQueue(replicationPluginConfigurationStorage);
         initBackgroundWorkers(replicationPluginConfigurationStorage);

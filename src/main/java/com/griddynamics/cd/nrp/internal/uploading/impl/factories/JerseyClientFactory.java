@@ -18,21 +18,20 @@ import java.util.concurrent.TimeUnit;
 @Singleton
 public class JerseyClientFactory {
 
-    private Logger log = LoggerFactory.getLogger(JerseyClientFactory.class);
-
-    private ExecutorService executorService;
     private final ReplicationPluginConfigurationStorage
             replicationPluginConfigurationStorage;
+    private Logger log = LoggerFactory.getLogger(JerseyClientFactory.class);
+    private ExecutorService executorService;
 
     @Inject
     public JerseyClientFactory(
             ReplicationPluginConfigurationStorage
-                    replicationPluginConfigurationStorage ) {
+                    replicationPluginConfigurationStorage) {
         this.replicationPluginConfigurationStorage = replicationPluginConfigurationStorage;
 
     }
 
-    public void onActivate(){
+    public void onActivate() {
         int requestQueueSize = replicationPluginConfigurationStorage.getRequestQueueSize();
         this.executorService = new ThreadPoolExecutor(
                 replicationPluginConfigurationStorage.getRequestSendingThreadCount(),
@@ -42,6 +41,13 @@ public class JerseyClientFactory {
                 new LinkedBlockingQueue<Runnable>(
                         requestQueueSize));
     }
+
+    /**
+     * @param login    Login to Nexus
+     * @param password Password to Nexus
+     * @return Jersey Client for provide login and password with connection timeout set to 1000 ms and read timeout set to 2000
+     *          This particular values for timeouts were chosen to avoid potential deadlock in case of peer server load
+     */
 
     public Client getClient(String login, String password) {
         ClientConfig config = new DefaultClientConfig();

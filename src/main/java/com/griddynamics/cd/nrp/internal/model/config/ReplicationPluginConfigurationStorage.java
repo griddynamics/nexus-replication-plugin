@@ -12,7 +12,21 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+/**
+ * DTO Class for storing plugin's configuration:
+ * - master server URL prefix
+ * - request queue size
+ * - request sending thread count
+ * - request queue backup file
+ * - peer servers
+ * <p>
+ * At first run, the default configuration is being created by ReplicationPluginCapabilitiesBooter, and passed to this class
+ * <p>
+ * Then every time Nexus is being restarted or plugin's settings changed, ReplicationPluginCapability passes new settings to this class
+ */
 
 @Named(value = "replicationPluginConfigurationStorage")
 @Singleton
@@ -21,80 +35,68 @@ public class ReplicationPluginConfigurationStorage {
     Logger logger =
             LoggerFactory.getLogger(ReplicationPluginConfigurationStorage.class);
 
-    private final AtomicReference<String> masterServerURLPrefix = new AtomicReference<>();
-    private final AtomicReference<Integer> requestQueueSize = new AtomicReference<>();
-    private final AtomicReference<Integer> requestSendingThreadCount = new AtomicReference<>();
-    private final AtomicReference<String> requestQueueDumpFileName = new AtomicReference<>();;
-    private final AtomicReference<Set<NexusServer>> servers = new AtomicReference<>();
+    private volatile String masterServerURLPrefix = null;
+    private volatile Integer requestQueueSize = null;
+    private volatile Integer requestSendingThreadCount = null;
+    private volatile String requestQueueDumpFileName = null;
+    private volatile Set<NexusServer> servers = null;
 
     @Inject
     public ReplicationPluginConfigurationStorage() {
-        servers.set(new LinkedHashSet<NexusServer>());
     }
 
     public String getMasterServerURLPrefix() {
-        String retVal = masterServerURLPrefix.get();
-        if(retVal == null){
-            throw new RuntimeException("Replication plugin configuration not ready yet!");
-        }
-        return retVal;
+        checkNotNull(masterServerURLPrefix, "Replication plugin configuration not ready yet!");
+        return this.masterServerURLPrefix;
     }
 
     public void setMasterServerURLPrefix(String masterServerURLPrefix) {
-        this.masterServerURLPrefix.set(masterServerURLPrefix);
+        checkNotNull(masterServerURLPrefix, "Replication plugin configuration parameter cannot be set to null");
+        this.masterServerURLPrefix = masterServerURLPrefix;
         logger.info(toString());
     }
 
     public String getRequestQueueDumpFileName() {
-        String retVal =  requestQueueDumpFileName.get();
-        if(retVal == null){
-            throw new RuntimeException("Replication plugin configuration not ready yet!");
-        }
-        return retVal;
+        checkNotNull(requestQueueDumpFileName, "Replication plugin configuration not ready yet!");
+        return requestQueueDumpFileName;
     }
 
     public void setRequestQueueDumpFileName(String requestQueueDumpFileName) {
-        this.requestQueueDumpFileName.set(requestQueueDumpFileName);
+        checkNotNull(requestQueueDumpFileName, "Replication plugin configuration parameter cannot be set to null");
+        this.requestQueueDumpFileName = requestQueueDumpFileName;
         logger.info(toString());
     }
 
     public Set<NexusServer> getServers() {
-        Set<NexusServer> retVal = servers.get();
-        if(retVal == null){
-            throw new RuntimeException("Replication plugin configuration not ready yet!");
-        }
-        return retVal;
+        checkNotNull(servers, "Replication plugin configuration not ready yet!");
+        return servers;
     }
 
     public void setServers(Set<NexusServer> nexusServers) {
-        servers.get().clear();
-        servers.get().addAll(nexusServers);
+        checkNotNull(nexusServers, "Replication plugin configuration parameter cannot be set to null");
+        servers = new LinkedHashSet<>(nexusServers);
         logger.info(toString());
     }
 
     public int getRequestSendingThreadCount() {
-        Integer retVal = requestSendingThreadCount.get();
-        if(retVal == null){
-            throw new RuntimeException("Replication plugin configuration not ready yet!");
-        }
-        return retVal;
+        checkNotNull(requestSendingThreadCount, "Replication plugin configuration not ready yet!");
+        return requestSendingThreadCount;
     }
 
-    public void setRequestSendingThreadCount(int requestSendingThreadCount) {
-        this.requestSendingThreadCount.set(requestSendingThreadCount);
+    public void setRequestSendingThreadCount(Integer requestSendingThreadCount) {
+        checkNotNull(requestSendingThreadCount, "Replication plugin configuration parameter cannot be set to null");
+        this.requestSendingThreadCount = requestSendingThreadCount;
         logger.info(toString());
     }
 
     public int getRequestQueueSize() {
-        Integer retVal = requestQueueSize.get();
-        if(retVal == null){
-            throw new RuntimeException("Replication plugin configuration not ready yet!");
-        }
-        return retVal;
+        checkNotNull(requestQueueSize, "Replication plugin configuration not ready yet!");
+        return requestQueueSize;
     }
 
-    public void setRequestQueueSize(int requestQueueSize) {
-        this.requestQueueSize.set(requestQueueSize);
+    public void setRequestQueueSize(Integer requestQueueSize) {
+        checkNotNull(requestQueueSize, "Replication plugin configuration parameter cannot be set to null");
+        this.requestQueueSize = requestQueueSize;
         logger.info(toString());
     }
 
@@ -102,8 +104,8 @@ public class ReplicationPluginConfigurationStorage {
     public String toString() {
         return "ReplicationPluginConfigurationStorage{" +
                 "masterServerURLPrefix='" + masterServerURLPrefix + '\'' +
-                ", requestQueueSize=" + requestQueueSize.get() +
-                ", requestSendingThreadCount=" + requestSendingThreadCount.get() +
+                ", requestQueueSize=" + requestQueueSize +
+                ", requestSendingThreadCount=" + requestSendingThreadCount +
                 ", requestQueueDumpFileName='" + requestQueueDumpFileName + '\'' +
                 ", servers=" + servers +
                 '}';

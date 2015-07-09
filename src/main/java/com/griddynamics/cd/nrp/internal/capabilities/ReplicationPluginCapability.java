@@ -2,6 +2,7 @@ package com.griddynamics.cd.nrp.internal.capabilities;
 
 import com.griddynamics.cd.nrp.internal.model.config.ReplicationPluginConfigurationStorage;
 import com.griddynamics.cd.nrp.internal.uploading.ArtifactUpdateApiClient;
+import com.griddynamics.cd.nrp.internal.uploading.impl.ArtifactUpdateApiClientImpl;
 import com.griddynamics.cd.nrp.internal.uploading.impl.factories.JerseyClientFactory;
 import org.jetbrains.annotations.NonNls;
 import org.sonatype.nexus.capability.support.CapabilitySupport;
@@ -22,13 +23,13 @@ public class ReplicationPluginCapability
     public static final String NL = System.getProperty("line.separator");
 
     private final ReplicationPluginConfigurationStorage gridRegistry;
-    private final ArtifactUpdateApiClient artifactUpdateApiClient;
+    private final ArtifactUpdateApiClientImpl artifactUpdateApiClient;
     private final JerseyClientFactory jerseyClientFactory;
 
     @Inject
-    public ReplicationPluginCapability(final ReplicationPluginConfigurationStorage replicationPluginConfigurationStorage,
-                                       final ArtifactUpdateApiClient artifactUpdateApiClient,
-                                       final JerseyClientFactory jerseyClientFactory) {
+    public ReplicationPluginCapability(ReplicationPluginConfigurationStorage replicationPluginConfigurationStorage,
+                                       ArtifactUpdateApiClientImpl artifactUpdateApiClient,
+                                       JerseyClientFactory jerseyClientFactory) {
         this.gridRegistry = checkNotNull(replicationPluginConfigurationStorage);
         this.artifactUpdateApiClient = artifactUpdateApiClient;
         this.jerseyClientFactory = jerseyClientFactory;
