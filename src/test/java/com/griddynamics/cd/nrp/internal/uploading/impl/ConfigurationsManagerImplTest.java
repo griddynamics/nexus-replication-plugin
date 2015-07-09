@@ -23,7 +23,7 @@ public class ConfigurationsManagerImplTest {
     private final String SECOND_CONFIGURATION_FILE = "replication-plugin-2.xml";
 
     @Test
-    public void testGetConfiguration() throws Exception {
+    public void ifOneNexusServerSuppliedInCOnfigurationFileShouldLoadOneNexusServerWithItsAttributes() throws Exception {
         NexusConfiguration nexusConfiguration = mock(NexusConfiguration.class);
         URL configFile = getClass().getClassLoader().getResource(FIRST_CONFIGURATION_FILE);
         when(nexusConfiguration.getConfigurationDirectory()).thenReturn(new File(configFile.getFile()).getParentFile());
@@ -42,7 +42,7 @@ public class ConfigurationsManagerImplTest {
     }
 
     @Test
-    public void testReloadConfigurations() throws Exception {
+    public void if2NexusServersSuppliedInCOnfigurationFileShouldLoad2NexusServer() throws Exception {
         NexusConfiguration nexusConfiguration = mock(NexusConfiguration.class);
         URL configFile = getClass().getClassLoader().getResource(FIRST_CONFIGURATION_FILE);
         when(nexusConfiguration.getConfigurationDirectory()).thenReturn(new File(configFile.getFile()).getParentFile());

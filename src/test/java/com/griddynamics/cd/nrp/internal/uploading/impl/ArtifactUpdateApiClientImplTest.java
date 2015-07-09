@@ -69,7 +69,7 @@ public class ArtifactUpdateApiClientImplTest {
     }
 
     @Test
-    public void testOfferRequest() throws InterruptedException {
+    public void if2ArtifactsSubmittedAnd2PeersConfiguredShouldSend2artifactsTo2Peers() throws InterruptedException {
         ArtifactMetaInfo artifactMetaInfo = new ArtifactMetaInfo(
                 "http://mock:8081",
                 "com.griddynamics",

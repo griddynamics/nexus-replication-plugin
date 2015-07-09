@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.restlet.data.Request;
@@ -29,6 +30,7 @@ public class ArtifactUpdatePlexusResourceTest {
 
     private final String REQUEST_URI = "/artifact/maven/update";
     private final ArrayList<Repository> repositories = new ArrayList<>();
+    ArtifactStoreHelper artifactStoreHelper = mock(ArtifactStoreHelper.class);
     ArtifactStoreRequest artifactStoreRequestMock = mock(ArtifactStoreRequest.class);
 
     private ArtifactUpdatePlexusResource artifactUpdatePlexusResource;
@@ -39,13 +41,6 @@ public class ArtifactUpdatePlexusResourceTest {
         artifactUpdatePlexusResource = spy(new ArtifactUpdatePlexusResource() {
             @Override
             protected RepositoryRegistry getRepositoryRegistry() {
-//                ArtifactStoreHelper artifactStoreHelper = mock(ArtifactStoreHelper.class);
-//                ArrayList<Repository> repositories = new ArrayList<>();
-//                M2Repository repository = mock(M2Repository.class);
-//                when(repository.getRemoteUrl()).thenReturn("http://localhost:8081/nexus/content/repositories/snapshots/");
-//                when(repository.getId()).thenReturn("replica-1");
-//                when(repository.getArtifactStoreHelper()).thenReturn(artifactStoreHelper);
-//                repositories.add(repository);
                 RepositoryRegistry repositoryRegistry = mock(RepositoryRegistry.class);
                 when(repositoryRegistry.getRepositories()).thenReturn(repositories);
                 return repositoryRegistry;
@@ -66,26 +61,26 @@ public class ArtifactUpdatePlexusResourceTest {
     }
 
     @Test
-    public void testGetResourceUri() throws Exception {
+    public void shouldReturnCorrectResourceUri() throws Exception {
         assertEquals(artifactUpdatePlexusResource.getResourceUri(), REQUEST_URI);
     }
 
     @Test
-    public void testGetResourceProtection() throws Exception {
+    public void shouldReturnCorrectFilterExpression() throws Exception {
         PathProtectionDescriptor resourceProtection = artifactUpdatePlexusResource.getResourceProtection();
         assertEquals("Incorrect request URI in security configuration", resourceProtection.getPathPattern(), REQUEST_URI);
         assertEquals("Incorrect permissions for API", resourceProtection.getFilterExpression(), "authcBasic,perms[nexus:artifact]");
     }
 
     @Test
-    public void testGetPayloadInstance() throws Exception {
+    public void shouldReturnCorrectPayload() throws Exception {
         Object instance = artifactUpdatePlexusResource.getPayloadInstance();
         assertNotNull(REQUEST_URI + " resource should be configured to return ArtifactMetaInfo as request body DTO. Method returns null.", instance);
         assertTrue(REQUEST_URI + " resource should be configured to return ArtifactMetaInfo as request body DTO. Method returns incorrect type.", instance instanceof ArtifactMetaInfo);
     }
 
     @Test
-    public void testConfigureXStream() throws Exception {
+    public void shouldConfigureXStreamCorrectly() throws Exception {
         XStream xstream = mock(XStream.class);
         artifactUpdatePlexusResource.configureXStream(xstream);
         Mockito.verify(xstream, Mockito.times(1)).processAnnotations(ArtifactMetaInfo.class);
@@ -93,7 +88,7 @@ public class ArtifactUpdatePlexusResourceTest {
     }
 
     @Test
-    public void testPostForEmptyRepositoriesList() throws Exception {
+    public void ifNoProxyIsConfiguredShouldReturnNoProxiesForThisArtifact() throws Exception {
         // Mocks initialization
         Request request = mock(Request.class);
 
@@ -105,7 +100,7 @@ public class ArtifactUpdatePlexusResourceTest {
     }
 
     @Test
-    public void testPostForOneRepositoryList() throws Exception {
+    public void ifProxyForArtifactIsConfiguredShouldReturnArtifactIsResolved() throws Exception {
         // Init mocks
         ArtifactStoreHelper artifactStoreHelper = mock(ArtifactStoreHelper.class);
         Request request = new Request();
@@ -123,28 +118,21 @@ public class ArtifactUpdatePlexusResourceTest {
         Assert.assertTrue("Request should be success.", response.isSuccess());
     }
 
-    @Test
-    public void testPostForTwoMatchedRepositories() throws Exception {
-        // Init mocks
-        ArtifactStoreHelper artifactStoreHelper = mock(ArtifactStoreHelper.class);
-
+    private M2Repository provideMockM2Repository(String id, String remoteURL) {
         M2Repository repository = mock(M2Repository.class);
-        when(repository.getRemoteUrl()).thenReturn("http://localhost:8081/nexus/content/repositories/snapshots/");
-        when(repository.getId()).thenReturn("replica-1");
+        when(repository.getRemoteUrl()).thenReturn(remoteURL);
+        when(repository.getId()).thenReturn(id);
         when(repository.getArtifactStoreHelper()).thenReturn(artifactStoreHelper);
-        repositories.add(repository);
+        return repository;
+    }
 
-        repository = mock(M2Repository.class);
-        when(repository.getRemoteUrl()).thenReturn("http://localhost:8081/nexus/content/repositories/snapshots/");
-        when(repository.getId()).thenReturn("replica-2");
-        when(repository.getArtifactStoreHelper()).thenReturn(artifactStoreHelper);
-        repositories.add(repository);
+    @Test
+    public void if2Of3RepositoriesShouldSendOnlyToMatchningRepositories() throws Exception {
+        // Init mocks
 
-        repository = mock(M2Repository.class);
-        when(repository.getRemoteUrl()).thenReturn("http://localhost:8085/nexus/content/repositories/releases/");
-        when(repository.getId()).thenReturn("replica-3");
-        when(repository.getArtifactStoreHelper()).thenReturn(artifactStoreHelper);
-        repositories.add(repository);
+        repositories.add(provideMockM2Repository("replica-1", "http://localhost:8081/nexus/content/repositories/snapshots/"));
+        repositories.add(provideMockM2Repository("replica-2", "http://localhost:8081/nexus/content/repositories/snapshots/"));
+        repositories.add(provideMockM2Repository("replica-3", "http://localhost:8085/nexus/content/repositories/snapshots/"));
 
         Request request = new Request();
         // Tested method invocation
