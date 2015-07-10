@@ -66,7 +66,7 @@ public class ConfigurationsManagerImpl extends ComponentSupport implements Confi
     @PostConstruct
     public void init() {
         log.trace("Initializing plugin configurations");
-        reloadConfigurations();
+        reloadConfigurations(CONFIG_FILENAME);
     }
 
     /**
@@ -78,7 +78,7 @@ public class ConfigurationsManagerImpl extends ComponentSupport implements Confi
         if (config == null) {
             synchronized (this) {
                 if (config == null) {
-                    reloadConfigurations();
+                    reloadConfigurations(CONFIG_FILENAME);
                 }
             }
         }
@@ -89,8 +89,8 @@ public class ConfigurationsManagerImpl extends ComponentSupport implements Confi
      * Reloads {@link ConfigurationsManagerImpl#config}
      * from XML plugin configurations file
      */
-    public void reloadConfigurations() {
-        File file = getConfigurationFile();
+    public void reloadConfigurations(String filename) {
+        File file = getConfigurationFile(filename);
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(ReplicationPluginConfiguration.class);
 
@@ -104,7 +104,7 @@ public class ConfigurationsManagerImpl extends ComponentSupport implements Confi
     /**
      * Returns plugin configurations XML file
      */
-    private File getConfigurationFile() {
-        return new File(nexusConfiguration.getConfigurationDirectory(), CONFIG_FILENAME);
+    private File getConfigurationFile(String filename) {
+        return new File(nexusConfiguration.getConfigurationDirectory(), filename);
     }
 }
