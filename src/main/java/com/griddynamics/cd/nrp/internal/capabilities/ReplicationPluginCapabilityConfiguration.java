@@ -2,14 +2,15 @@ package com.griddynamics.cd.nrp.internal.capabilities;
 
 import com.google.common.collect.Maps;
 import com.griddynamics.cd.nrp.internal.model.config.ReplicationPluginConfigurationStorage;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class ReplicationPluginCapabilityConfiguration {
 
@@ -17,17 +18,17 @@ public class ReplicationPluginCapabilityConfiguration {
     public static final String REQUESTS_QUEUE_SIZE = "requestsQueueSize";
     public static final String REQUESTS_SENDING_THREADS_COUNT = "requestsSendingThreadsCount";
     public static final String QUEUE_DUMP_FILE_NAME = "queueDumpFileName";
-    public static final String SERVERS = "servers";
-
-    Logger logger =
-            LoggerFactory.getLogger(ReplicationPluginCapabilityConfiguration.class);
-
+    public static final String SERVER_URL = "server_url";
+    public static final String SERVER_LOGIN = "server_user";
+    public static final String SERVER_PASSWORD = "server_password";
 
     private final String masterServerURLPrefix;
     private final int requestQueueSize;
     private final int requestSendingThreadCount;
     private final String requestQueueDumpFileName;
     private final Set<ReplicationPluginConfigurationStorage.NexusServer> nexusServers;
+    Logger logger =
+            LoggerFactory.getLogger(ReplicationPluginCapabilityConfiguration.class);
 
     public ReplicationPluginCapabilityConfiguration(final Map<String, String> properties) {
         this.masterServerURLPrefix = properties.get(MASTER_SERVER_URL_PREFIX);
@@ -35,21 +36,24 @@ public class ReplicationPluginCapabilityConfiguration {
         this.requestSendingThreadCount = Integer.parseInt(properties.get(REQUESTS_SENDING_THREADS_COUNT));
         this.requestQueueDumpFileName = properties.get(QUEUE_DUMP_FILE_NAME);
         this.nexusServers = new LinkedHashSet<>();
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            List<Map> servers = (List<Map>) objectMapper.readValue(properties.get(SERVERS), Map.class).get("servers");
-            for (Map server : servers) {
-                this.nexusServers.add(
-                        new ReplicationPluginConfigurationStorage.NexusServer(
-                                (String) server.get("url"),
-                                (String) server.get("user"),
-                                (String) server.get("password")
-                        )
-                );
+
+        for (int i = 0; i < 5; i++) {
+            String serverUrl = properties.get(SERVER_URL + "_" + i);
+            String serverLogin = properties.get(SERVER_LOGIN + "_" + i);
+            String serverPassword = properties.get(SERVER_PASSWORD + "_" + i);
+
+            if (isNullOrEmpty(serverUrl) ||
+                    isNullOrEmpty(serverLogin) ||
+                    isNullOrEmpty(serverPassword)) {
+                continue;
             }
 
-        } catch (Exception e) {
-            logger.error(e.getMessage(),e);
+            ReplicationPluginConfigurationStorage.NexusServer nexusServer = new ReplicationPluginConfigurationStorage.NexusServer(
+                    serverUrl,
+                    serverLogin,
+                    serverPassword
+            );
+            nexusServers.add(nexusServer);
         }
     }
 
@@ -59,6 +63,13 @@ public class ReplicationPluginCapabilityConfiguration {
         props.put(REQUESTS_QUEUE_SIZE, String.valueOf(requestQueueSize));
         props.put(REQUESTS_SENDING_THREADS_COUNT, String.valueOf(requestSendingThreadCount));
         props.put(QUEUE_DUMP_FILE_NAME, requestQueueDumpFileName);
+        Iterator<ReplicationPluginConfigurationStorage.NexusServer> nexusServerIterator = nexusServers.iterator();
+        for (int i = 0; nexusServerIterator.hasNext(); i++) {
+            ReplicationPluginConfigurationStorage.NexusServer nexusServer = nexusServerIterator.next();
+            props.put(SERVER_URL + "_" + i, nexusServer.getUrl());
+            props.put(SERVER_LOGIN + "_" + i, nexusServer.getUser());
+            props.put(SERVER_PASSWORD + "_" + i, nexusServer.getPassword());
+        }
         return props;
     }
 
