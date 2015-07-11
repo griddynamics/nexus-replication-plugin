@@ -2,14 +2,18 @@ package com.griddynamics.cd.nrp.internal.uploading.impl;
 
 import com.google.common.collect.Sets;
 import com.griddynamics.cd.nrp.internal.model.api.ArtifactMetaInfo;
-import com.griddynamics.cd.nrp.internal.model.internal.ArtifactMetaInfoQueueDump;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -81,4 +85,25 @@ public class FileBlockingQueue {
 
     }
 
+    /**
+     * DTO Class encapsulates artifact replication queue
+     */
+    @XmlRootElement(name = "artifactMetaInfoBlockingQueueDump")
+    public static class ArtifactMetaInfoQueueDump {
+        @XmlElement(name = "artifactMetaInfo")
+        @XmlElementWrapper(name = "artifactMetaInfos")
+        private final Set<ArtifactMetaInfo> artifactMetaInfos = new HashSet<>();
+
+        public void addArtifactMetaInfo(ArtifactMetaInfo artifactMetaInfo) {
+            artifactMetaInfos.add(artifactMetaInfo);
+        }
+        public void addAllArtifactMetaInfo(Set<ArtifactMetaInfo> artifactMetaInfo) {
+            artifactMetaInfos.addAll(artifactMetaInfo);
+        }
+
+        public Set<ArtifactMetaInfo> getArtifactMetaInfos() {
+            return artifactMetaInfos;
+        }
+
+    }
 }

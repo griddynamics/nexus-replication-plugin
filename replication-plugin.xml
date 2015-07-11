@@ -18,7 +18,10 @@ requestsQueueSize and requestsSendingThreadsCount attributes define thread pool 
 requests from master to peers asynchronously.
 The default values are: 500 for requestsQueueSize and 1 for requestsSendingThreadsCount
 -->
-<configurations myUrl="http://localhost:8081/nexus" requestsQueueSize="500" requestsSendingThreadsCount="1" queueDumpFileName="/tmp/nexus-replication-plugin-queue-backup">
+<configurations myUrl="http://localhost:8081/nexus"
+                requestsQueueSize="500"
+                requestsSendingThreadsCount="1"
+                queueDumpFileName="/tmp/nexus-replication-plugin-queue-backup">
     <servers>
         <server>
             <url>http://localhost:8083/nexus</url>

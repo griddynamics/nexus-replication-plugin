@@ -15,27 +15,20 @@
  */
 package com.griddynamics.cd.nrp.internal.uploading.impl;
 
+import com.griddynamics.cd.nrp.internal.model.config.ReplicationPluginConfigurationStorage;
 import com.griddynamics.cd.nrp.internal.model.api.ArtifactMetaInfo;
-import com.griddynamics.cd.nrp.internal.model.config.ReplicationPluginConfiguration;
-import com.griddynamics.cd.nrp.internal.model.internal.ArtifactMetaInfoQueueDump;
 import com.griddynamics.cd.nrp.internal.model.api.RestResponse;
-import com.griddynamics.cd.nrp.internal.model.config.NexusServer;
 import com.griddynamics.cd.nrp.internal.uploading.ArtifactUpdateApiClient;
-import com.griddynamics.cd.nrp.internal.uploading.ConfigurationsManager;
+import com.griddynamics.cd.nrp.internal.uploading.impl.factories.AsyncWebResourceBuilderFactory;
+import com.griddynamics.cd.nrp.internal.uploading.impl.factories.FileBlockingQueueFactory;
 import com.sun.jersey.api.client.AsyncWebResource;
-import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.async.ITypeListener;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import org.sonatype.sisu.goodies.common.ComponentSupport;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
@@ -62,34 +55,31 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
      */
     public static final int QUEUE_TIMEOUT_IN_SECOND = 1;
 
-    /**
-     * Provides access to the plugin configurations
-     */
-    private final ConfigurationsManager configurationsManager;
-
+    private final FileBlockingQueueFactory fileBlockingQueueFactory;
+    private final AsyncWebResourceBuilderFactory asyncWebResourceBuilderFactory;
+    private final ReplicationPluginConfigurationStorage replicationPluginConfigurationStorage;
     /**
      * ExecutorService shares between clients. All treads are created in the same executor
      */
-    private final ExecutorService jerseyHttpClientExecutor;
-    private final FileBlockingQueue fileBlockingQueue;
+    private FileBlockingQueue fileBlockingQueue;
 
     @Inject
-    public ArtifactUpdateApiClientImpl(ConfigurationsManager configurationsManager) {
-        this.configurationsManager = configurationsManager;
-        this.fileBlockingQueue = initFileBlockingQueue(configurationsManager.getConfiguration());
-        this.jerseyHttpClientExecutor = new ThreadPoolExecutor(
-                configurationsManager.getConfiguration().getRequestsSendingThreadsCount(),
-                configurationsManager.getConfiguration().getRequestsSendingThreadsCount(),
-                30,
-                TimeUnit.SECONDS,
-                new LinkedBlockingQueue<Runnable>(
-                        configurationsManager.getConfiguration().getRequestsQueueSize())
-        );
-        initBackgroundWorkers(configurationsManager.getConfiguration());
+    public ArtifactUpdateApiClientImpl(FileBlockingQueueFactory fileBlockingQueueFactory,
+                                       AsyncWebResourceBuilderFactory asyncWebResourceBuilderFactory,
+                                       ReplicationPluginConfigurationStorage replicationPluginConfigurationStorage) {
+        this.fileBlockingQueueFactory = fileBlockingQueueFactory;
+        this.asyncWebResourceBuilderFactory = asyncWebResourceBuilderFactory;
+        this.replicationPluginConfigurationStorage = replicationPluginConfigurationStorage;
     }
 
-    private void initBackgroundWorkers(ReplicationPluginConfiguration replicationPluginConfiguration) {
-        int requestsSendingThreadsCount = replicationPluginConfiguration.getRequestsSendingThreadsCount();
+    public void onActivate(){
+        this.fileBlockingQueue = initFileBlockingQueue(replicationPluginConfigurationStorage);
+        initBackgroundWorkers(replicationPluginConfigurationStorage);
+    }
+
+    private void initBackgroundWorkers(ReplicationPluginConfigurationStorage replicationPluginConfigurationStorage) {
+        int requestsSendingThreadsCount = replicationPluginConfigurationStorage
+                .getRequestSendingThreadCount();
         ExecutorService executorService = Executors.newFixedThreadPool(requestsSendingThreadsCount);
         for (int i = 0; i < requestsSendingThreadsCount; i++) {
             executorService.submit(new Runnable() {
@@ -109,18 +99,15 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
         }
     }
 
-    private FileBlockingQueue initFileBlockingQueue(ReplicationPluginConfiguration replicationPluginConfiguration) {
-        BlockingQueue<ArtifactMetaInfo> blockingQueue =
-                new LinkedBlockingQueue<>(replicationPluginConfiguration.getRequestsQueueSize());
-        String queueFileName = replicationPluginConfiguration.getQueueDumpFileName();
-        FileBlockingQueue retVal = new FileBlockingQueue(blockingQueue,
-                queueFileName);
+    private FileBlockingQueue initFileBlockingQueue(ReplicationPluginConfigurationStorage replicationPluginConfigurationStorage) {
+        String queueFileName = replicationPluginConfigurationStorage.getRequestQueueDumpFileName();
+        FileBlockingQueue retVal = fileBlockingQueueFactory.getFileBlockingQueue();
         try {
             File queueFile = new File(queueFileName);
             if (queueFile.exists()) {
-                JAXBContext jaxbContext = JAXBContext.newInstance(ArtifactMetaInfoQueueDump.class);
+                JAXBContext jaxbContext = JAXBContext.newInstance(FileBlockingQueue.ArtifactMetaInfoQueueDump.class);
                 Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-                ArtifactMetaInfoQueueDump unmarshal = (ArtifactMetaInfoQueueDump) unmarshaller.unmarshal(queueFile);
+                FileBlockingQueue.ArtifactMetaInfoQueueDump unmarshal = (FileBlockingQueue.ArtifactMetaInfoQueueDump) unmarshaller.unmarshal(queueFile);
                 for (ArtifactMetaInfo artifactMetaInfo : unmarshal.getArtifactMetaInfos()) {
                     offerRequest(artifactMetaInfo);
                 }
@@ -146,8 +133,10 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
      * @param metaInfo Artifact information
      */
     public void sendRequest(ArtifactMetaInfo metaInfo) {
-        for (NexusServer server : configurationsManager.getConfiguration().getServers()) {
-            AsyncWebResource.Builder service = getService(server.getUrl(), server.getUser(), server.getPassword());
+        for (ReplicationPluginConfigurationStorage.NexusServer server : replicationPluginConfigurationStorage.getServers()) {
+            AsyncWebResource.Builder service =
+                    asyncWebResourceBuilderFactory.getAsyncWebResourceBuilder(
+                            server.getUrl(), server.getUser(), server.getPassword());
             try {
                 service.post(new ITypeListener<RestResponse>() {
                     @Override
@@ -180,42 +169,4 @@ public class ArtifactUpdateApiClientImpl extends ComponentSupport implements Art
         }
     }
 
-    /**
-     * Returns jersey HTTP resource to access to the remote replication servers
-     *
-     * @param nexusUrl URL of the remote server
-     * @param login    Username on the remote server
-     * @param password User's password
-     * @return Jersey HTTP client
-     */
-    private AsyncWebResource.Builder getService(String nexusUrl, String login, String password) {
-        Client client = getClient(login, password);
-        client.setExecutorService(jerseyHttpClientExecutor);
-        AsyncWebResource webResource = client.asyncResource(UriBuilder.fromUri(nexusUrl).build());
-        webResource = webResource.path("service").path("local").path("artifact").path("maven").path("update");
-        return webResource.accept(MediaType.APPLICATION_XML_TYPE)
-                .type(MediaType.APPLICATION_XML_TYPE);
-    }
-
-    /**
-     * Creates jersey HTTP client
-     *
-     * @param login    Username on the remote server
-     * @param password User's password
-     * @return HTTP client
-     */
-    private Client getClient(String login, String password) {
-        ClientConfig config = new DefaultClientConfig();
-        config.getProperties().put(ClientConfig.PROPERTY_CONNECT_TIMEOUT, 1000);
-        config.getProperties().put(ClientConfig.PROPERTY_READ_TIMEOUT, 2000);
-        Client client = Client.create(config);
-        client.setExecutorService(jerseyHttpClientExecutor);
-        if (login != null && !login.isEmpty() && password != null) {
-            log.debug("Creating HTTP client with authorized HTTPBasicAuthFilter.");
-            client.addFilter(new HTTPBasicAuthFilter(login, password));
-        } else {
-            log.debug("Creating HTTP client with anonymous HTTPBasicAuthFilter.");
-        }
-        return client;
-    }
 }
